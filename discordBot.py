@@ -6,7 +6,7 @@ import discord
 import ollama
 from collections import deque
 
-with open("config.json") as f:
+with open("/var/scripts/discord-bot/config.json") as f:
     config = json.load(f)
 
 tools = [
