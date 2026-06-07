@@ -51,6 +51,10 @@ tool_functions = {
 
 def llm_chat(user_input: str) -> str:
     messages = [{"role": "user", "content": user_input}]
+    with open("/var/scripts/assistant/daily_summary.md") as file:
+        daily_context = file.read()
+    if daily_context:
+        messages.insert(0, {"role": "system", "content": f"Here is some relevant context for today's summary:\n\n{daily_context}"})
 
     if config.get("system_prompt"):
         messages.insert(0, {"role": "system", "content": config["system_prompt"]})
