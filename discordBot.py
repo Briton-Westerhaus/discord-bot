@@ -55,7 +55,7 @@ async def on_message(message: discord.Message):
 
     async with message.channel.typing():
         loop = asyncio.get_event_loop()
-        reply = await loop.run_in_executor(None, chat, str(message.author.id), messages, daily_context)
+        reply = await loop.run_in_executor(None, chat, str(message.author.id), messages, None, daily_context)
 
     for chunk in split_message(reply):
         await message.channel.send(chunk)
