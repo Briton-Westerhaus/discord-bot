@@ -93,7 +93,7 @@ async def on_message(message: discord.Message):
 
     async with message.channel.typing():
         loop = asyncio.get_event_loop()
-        reply = await loop.run_in_executor(None, chat, str(message.author.id), messages, None, daily_context, additional_tools=GMAIL_TOOLS, additional_tool_functions=GMAIL_TOOL_FUNCTIONS) #TODO: Filter tools for user id
+        reply = await loop.run_in_executor(None, chat, str(message.author.id), messages, None, daily_context, GMAIL_TOOLS, GMAIL_TOOL_FUNCTIONS) #TODO: Filter tools for user id
 
     for chunk in split_message(reply):
         await message.channel.send(chunk)
