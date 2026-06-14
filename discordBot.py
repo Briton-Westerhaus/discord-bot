@@ -51,7 +51,7 @@ IMAGE_GENERATION_TOOL = {
     "type": "function",
     "function": {
         "name": "generate_image",
-        "description": "Generate an image based on a text prompt using Stable Diffusion. Returns the file path of the generated image.",
+        "description": "Generate an image based on a text prompt using Stable Diffusion. The image will be automatically sent as an attachment. Do not include the file path or markdown image syntax in your response.",
         "parameters": {
             "type": "object",
             "properties": {
