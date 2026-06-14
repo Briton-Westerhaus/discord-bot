@@ -1,10 +1,12 @@
 import sys
+import os
 import json
 import asyncio
 import discord
 
 sys.path.append('/var/scripts/local-llm')
-from chat import chat
+from chat import chat_with_artifacts
+from generate_image import generate_image
 
 sys.path.append('/var/scripts/assistant')
 from gmail import search_emails_by_subject, get_email_content
@@ -45,7 +47,27 @@ GMAIL_TOOL_FUNCTIONS = {
     "get_email_content": get_email_content
 }
 
-with open("config.json") as f:
+IMAGE_GENERATION_TOOL = {
+    "type": "function",
+    "function": {
+        "name": "generate_image",
+        "description": "Generate an image based on a text prompt using Stable Diffusion. Returns the file path of the generated image.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "prompt": {"type": "string", "description": "The text prompt to generate the image from"}
+            },
+            "required": ["prompt"]
+        }
+    }
+}
+
+IMAGE_GENERATION_TOOL_FUNCTIONS = {
+    "generate_image": generate_image
+}
+
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+with open(os.path.join(SCRIPT_DIR, "config.json")) as f:
     config = json.load(f)
 
 def split_message(text: str, limit: int = 2000) -> list[str]:
@@ -93,7 +115,12 @@ async def on_message(message: discord.Message):
 
     async with message.channel.typing():
         loop = asyncio.get_event_loop()
-        reply = await loop.run_in_executor(None, chat, str(message.author.id), messages, None, daily_context, GMAIL_TOOLS, GMAIL_TOOL_FUNCTIONS) #TODO: Filter tools for user id
+        result = await loop.run_in_executor(None, chat_with_artifacts, str(message.author.id), messages, None, daily_context, GMAIL_TOOLS + [IMAGE_GENERATION_TOOL], {**GMAIL_TOOL_FUNCTIONS, **IMAGE_GENERATION_TOOL_FUNCTIONS}) #TODO: Filter tools for user id
+
+    reply = result.get("reply", "")
+    for artifact in result.get("artifacts", []):
+        if artifact["type"] == "image":
+            await message.channel.send(file=discord.File(artifact["path"]))
 
     for chunk in split_message(reply):
         await message.channel.send(chunk)
