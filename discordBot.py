@@ -273,9 +273,19 @@ async def on_message(message: discord.Message):
     messages = list(reversed(history))
     messages.append({"role": "user", "content": message.content})
 
+    all_tools = []
+    all_tools.extend(GMAIL_TOOLS)
+    all_tools.extend([IMAGE_GENERATION_TOOL])
+    #all_tools.extend(GKEEP_TOOLS)
+
+    all_tool_functions = {}
+    all_tool_functions.update(GMAIL_TOOL_FUNCTIONS)
+    all_tool_functions.update(IMAGE_GENERATION_TOOL_FUNCTIONS)
+    #all_tool_functions.update(GKEEP_TOOL_FUNCTIONS)
+
     async with message.channel.typing():
         loop = asyncio.get_event_loop()
-        result = await loop.run_in_executor(None, chat_with_artifacts, str(message.author.id), messages, None, daily_context, GMAIL_TOOLS + [IMAGE_GENERATION_TOOL] + GKEEP_TOOLS, {**GMAIL_TOOL_FUNCTIONS, **IMAGE_GENERATION_TOOL_FUNCTIONS, **GKEEP_TOOL_FUNCTIONS}) #TODO: Filter tools for user id
+        result = await loop.run_in_executor(None, chat_with_artifacts, str(message.author.id), messages, None, daily_context, all_tools, all_tool_functions) #TODO: Filter tools for user id
 
     reply = result.get("reply", "")
     for artifact in result.get("artifacts", []):
