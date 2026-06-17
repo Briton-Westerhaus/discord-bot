@@ -10,6 +10,7 @@ from generate_image import generate_image
 
 sys.path.append('/var/scripts/assistant')
 from gmail import search_emails_by_subject, get_email_content
+from gkeep import list_notes, get_note, create_note, update_note, add_list_item, check_list_item, add_label, remove_label, delete_note
 
 GMAIL_TOOLS = [
     {
@@ -66,6 +67,165 @@ IMAGE_GENERATION_TOOL_FUNCTIONS = {
     "generate_image": generate_image
 }
 
+GKEEP_TOOLS = [
+    {
+        "type": "function",
+        "function": {
+            "name": "list_notes",
+            "description": "List Google Keep notes, optionally filtered by search query or label.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "query": {"type": "string", "description": "Free-text search string to filter notes by title or body."},
+                    "label": {"type": "string", "description": "Return only notes with this label name."},
+                    "archived": {"type": "boolean", "description": "Include archived notes. Default false."},
+                    "trashed": {"type": "boolean", "description": "Include trashed notes. Default false."},
+                },
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_note",
+            "description": "Retrieve a single Google Keep note by its ID.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "note_id": {"type": "string", "description": "The unique ID of the note."},
+                },
+                "required": ["note_id"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "create_note",
+            "description": "Create a new Google Keep note or checklist.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "title": {"type": "string", "description": "Note title."},
+                    "text": {"type": "string", "description": "Note body text (for regular notes)."},
+                    "list_items": {"type": "array", "items": {"type": "string"}, "description": "If provided, creates a checklist with these items."},
+                    "labels": {"type": "array", "items": {"type": "string"}, "description": "Label names to attach."},
+                    "pinned": {"type": "boolean", "description": "Whether to pin the note."},
+                    "color": {"type": "string", "description": "Color name: Red, Blue, Yellow, Green, Teal, Gray, or White."},
+                },
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "update_note",
+            "description": "Update the title, text, pin state, archive state, or color of a Google Keep note.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "note_id": {"type": "string", "description": "The unique ID of the note to update."},
+                    "title": {"type": "string", "description": "New title."},
+                    "text": {"type": "string", "description": "New body text (regular notes only)."},
+                    "pinned": {"type": "boolean", "description": "Set pin state."},
+                    "archived": {"type": "boolean", "description": "Set archived state."},
+                    "color": {"type": "string", "description": "New color name."},
+                },
+                "required": ["note_id"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "add_list_item",
+            "description": "Add an item to an existing Google Keep checklist note.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "note_id": {"type": "string", "description": "The unique ID of the list note."},
+                    "text": {"type": "string", "description": "Text content of the new list item."},
+                    "checked": {"type": "boolean", "description": "Whether the item starts checked. Default false."},
+                },
+                "required": ["note_id", "text"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "check_list_item",
+            "description": "Check or uncheck a specific item in a Google Keep checklist note.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "note_id": {"type": "string", "description": "The unique ID of the list note."},
+                    "item_id": {"type": "string", "description": "The unique ID of the list item."},
+                    "checked": {"type": "boolean", "description": "True to check, False to uncheck. Default true."},
+                },
+                "required": ["note_id", "item_id"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "add_label",
+            "description": "Add a label to a Google Keep note, creating the label if it doesn't exist.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "note_id": {"type": "string", "description": "The unique ID of the note."},
+                    "label_name": {"type": "string", "description": "Name of the label to add."},
+                },
+                "required": ["note_id", "label_name"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "remove_label",
+            "description": "Remove a label from a Google Keep note.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "note_id": {"type": "string", "description": "The unique ID of the note."},
+                    "label_name": {"type": "string", "description": "Name of the label to remove."},
+                },
+                "required": ["note_id", "label_name"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "delete_note",
+            "description": "Move a Google Keep note to trash.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "note_id": {"type": "string", "description": "The unique ID of the note to trash."},
+                },
+                "required": ["note_id"],
+            },
+        },
+    },
+]
+
+GKEEP_TOOL_FUNCTIONS = {
+    "list_notes": list_notes,
+    "get_note": get_note,
+    "create_note": create_note,
+    "update_note": update_note,
+    "add_list_item": add_list_item,
+    "check_list_item": check_list_item,
+    "add_label": add_label,
+    "remove_label": remove_label,
+    "delete_note": delete_note,
+}
+
+
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 with open(os.path.join(SCRIPT_DIR, "config.json")) as f:
     config = json.load(f)
@@ -115,7 +275,7 @@ async def on_message(message: discord.Message):
 
     async with message.channel.typing():
         loop = asyncio.get_event_loop()
-        result = await loop.run_in_executor(None, chat_with_artifacts, str(message.author.id), messages, None, daily_context, GMAIL_TOOLS + [IMAGE_GENERATION_TOOL], {**GMAIL_TOOL_FUNCTIONS, **IMAGE_GENERATION_TOOL_FUNCTIONS}) #TODO: Filter tools for user id
+        result = await loop.run_in_executor(None, chat_with_artifacts, str(message.author.id), messages, None, daily_context, GMAIL_TOOLS + [IMAGE_GENERATION_TOOL] + GKEEP_TOOLS, {**GMAIL_TOOL_FUNCTIONS, **IMAGE_GENERATION_TOOL_FUNCTIONS, **GKEEP_TOOL_FUNCTIONS}) #TODO: Filter tools for user id
 
     reply = result.get("reply", "")
     for artifact in result.get("artifacts", []):
