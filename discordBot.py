@@ -260,6 +260,9 @@ async def on_message(message: discord.Message):
 
     with open("/var/scripts/assistant/daily_summary.md") as file:
         daily_context = file.read()
+    
+    # Add system context for image generation, since the assistant constantly tries to use markdown.
+    daily_context += "\n\nWhen the generate_image tool is used, never reference, embed, or output the file path or markdown image syntax in your response. The image is automatically attached separately — just respond naturally about it."
 
     history = []
     async for msg in message.channel.history(limit=10, oldest_first=False):
