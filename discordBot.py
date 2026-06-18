@@ -3,6 +3,7 @@ import os
 import json
 import asyncio
 import discord
+import re
 
 sys.path.append('/var/scripts/local-llm')
 from chat import chat_with_artifacts
@@ -260,9 +261,6 @@ async def on_message(message: discord.Message):
 
     with open("/var/scripts/assistant/daily_summary.md") as file:
         daily_context = file.read()
-    
-    # Add system context for image generation, since the assistant constantly tries to use markdown.
-    daily_context += "\n\nWhen the generate_image tool is used, never reference, embed, or output the file path or markdown image syntax in your response. The image is automatically attached separately — just respond naturally about it."
 
     history = []
     async for msg in message.channel.history(limit=10, oldest_first=False):
@@ -293,6 +291,8 @@ async def on_message(message: discord.Message):
     reply = result.get("reply", "")
     for artifact in result.get("artifacts", []):
         if artifact["type"] == "image":
+            # Filter out the markdown image syntax from the reply if it exists
+            reply = re.sub(r'!\[.*?\]\(.*?\)', '', reply).strip()
             await message.channel.send(file=discord.File(artifact["path"]))
 
     for chunk in split_message(reply):
