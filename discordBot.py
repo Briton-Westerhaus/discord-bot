@@ -277,12 +277,12 @@ async def on_message(message: discord.Message):
     all_tools = []
     all_tools.extend(GMAIL_TOOLS)
     all_tools.extend([IMAGE_GENERATION_TOOL])
-    #all_tools.extend(GKEEP_TOOLS)
+    all_tools.extend(GKEEP_TOOLS)
 
     all_tool_functions = {}
     all_tool_functions.update(GMAIL_TOOL_FUNCTIONS)
     all_tool_functions.update(IMAGE_GENERATION_TOOL_FUNCTIONS)
-    #all_tool_functions.update(GKEEP_TOOL_FUNCTIONS)
+    all_tool_functions.update(GKEEP_TOOL_FUNCTIONS)
 
     async with message.channel.typing():
         loop = asyncio.get_event_loop()
